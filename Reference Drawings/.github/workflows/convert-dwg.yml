@@ -1,1 +1,24 @@
-
+name: Generate PNG Previews
+on:
+  push:
+    paths:
+      - '**/*.dxf'
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CAD Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librecad
+      - name: Convert to PNG
+        run: |
+          find . -name "*.dxf" -exec sh -c 'librecad --cmd dxf2png "${0}"' {} \;
+      - name: Push Preview
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add *.png
+          git commit -m "Automated PNG preview generation" || exit 0
+          git push
